@@ -15,6 +15,7 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [properties, setProperties] = useState([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Fetch properties from Firestore in real-time
   useEffect(() => {
@@ -81,11 +82,19 @@ function App() {
         >
           أريج مكة <span>للتطوير العقاري</span>
         </motion.div>
-        <nav>
+
+        {/* Mobile Hamburger */}
+        <div className="hamburger" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <span className={`bar ${isMobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`bar ${isMobileMenuOpen ? 'open' : ''}`}></span>
+          <span className={`bar ${isMobileMenuOpen ? 'open' : ''}`}></span>
+        </div>
+
+        <nav className={`nav-menu ${isMobileMenuOpen ? 'active' : ''}`}>
           <ul>
-            <li><a href="#home">الرئيسية</a></li>
-            <li><a href="#properties">العقارات</a></li>
-            <li><a href="#sell">سوق عقارك معانا</a></li>
+            <li><a href="#home" onClick={() => setIsMobileMenuOpen(false)}>الرئيسية</a></li>
+            <li><a href="#properties" onClick={() => setIsMobileMenuOpen(false)}>العقارات</a></li>
+            <li><a href="#sell" onClick={() => setIsMobileMenuOpen(false)}>سوق عقارك معانا</a></li>
             <li><a href="https://www.facebook.com/share/18hs9hLZ98/" target="_blank" rel="noopener noreferrer">فيسبوك صفحتنا</a></li>
           </ul>
         </nav>
@@ -128,9 +137,17 @@ function App() {
           </div>
 
           {loadingProperties ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <p>جاري تحميل العقارات...</p>
+            <div className="properties-grid">
+              {[...Array(6)].map((_, idx) => (
+                <div key={idx} className="skeleton-card">
+                  <div className="skeleton-img"></div>
+                  <div className="skeleton-content">
+                    <div className="skeleton-text title"></div>
+                    <div className="skeleton-text price"></div>
+                    <div className="skeleton-meta"></div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filterProperties.length === 0 ? (
             <div className="empty-state">
@@ -152,7 +169,7 @@ function App() {
                     onClick={() => openModal(property)}
                   >
                     <div className="property-image-container">
-                      <img src={getImages(property)[0]} alt={property.title} className="property-image" />
+                      <img src={getImages(property)[0]} alt={property.title} loading="lazy" className="property-image" />
                       <span className="property-badge">{property.type}</span>
                       {getImages(property).length > 1 && (
                         <span className="property-img-count">📷 {getImages(property).length}</span>
