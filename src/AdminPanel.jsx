@@ -1,34 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from './firebase';
 import './AdminPanel.css';
 
-const IMGBB_API_KEY = "28db43729f369058eef4ea048ddcb99b";
 const ADMIN_PASSWORD = "areejmaka";
 
 function generateId() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
-async function uploadImageToImgBB(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    const fd = new FormData();
-    fd.append("image", file);
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        resolve(JSON.parse(xhr.responseText).data.url);
-      } else {
-        reject(new Error("فشل الرفع"));
-      }
-    };
-    xhr.onerror = () => reject(new Error("خطأ في الاتصال"));
-    xhr.send(fd);
-  });
 }
 
 export function getYouTubeId(url) {
@@ -112,13 +91,33 @@ export default function AdminPanel({ onClose }) {
       try {
         updated[i] = { ...updated[i], uploading: true };
         setImages([...updated]);
-        const url = await uploadImageToImgBB(updated[i].file, (p) => {
-          updated[i] = { ...updated[i], progress: p };
-          setImages([...updated]);
+
+        const fileExtension = updated[i].file.name.split('.').pop();
+        const uniqueName = `admin_properties/${generateId()}.${fileExtension}`;
+        const storageRef = ref(storage, uniqueName);
+        
+        const uploadTask = uploadBytesResumable(storageRef, updated[i].file);
+
+        const url = await new Promise((resolve, reject) => {
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              const p = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+              updated[i] = { ...updated[i], progress: p };
+              setImages([...updated]);
+            }, 
+            (error) => {
+              reject(error);
+            }, 
+            async () => {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(downloadURL);
+            }
+          );
         });
+
         updated[i] = { ...updated[i], url, uploading: false, progress: 100 };
         setImages([...updated]);
-      } catch {
+      } catch (error) {
         updated[i] = { ...updated[i], error: 'فشل الرفع', uploading: false };
         setImages([...updated]);
       }

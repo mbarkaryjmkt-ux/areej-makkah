@@ -86,7 +86,7 @@ function App() {
             <li><a href="#home">الرئيسية</a></li>
             <li><a href="#properties">العقارات</a></li>
             <li><a href="#sell">سوق عقارك معانا</a></li>
-            <li><a href="#" target="_blank" rel="noopener noreferrer">فيسبوك صفحتنا</a></li>
+            <li><a href="https://www.facebook.com/share/18hs9hLZ98/" target="_blank" rel="noopener noreferrer">فيسبوك صفحتنا</a></li>
           </ul>
         </nav>
       </header>
@@ -289,7 +289,7 @@ function App() {
                         📱 تواصل عبر واتساب
                       </button>
                       <a
-                        href="#"
+                        href="https://www.facebook.com/share/18hs9hLZ98/"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-facebook"
